@@ -13,12 +13,12 @@ gemini-proxy runs on your own machine and exposes an **OpenAI-compatible** and a
  opencode / any OpenAI or Gemini client
                 │  http://localhost:8081  (API key from your .env)
                 ▼
- ┌──────────── proxy ────────────┐      ┌──────── browser ────────┐
+ ┌──────────── proxy ─────────────┐      ┌──────── browser ────────┐
  │ OpenAI + Gemini compatible API │      │ Chromium, signed in to  │◄── you, once, at
  │ (gemini-web2api, pinned)       │      │ Gemini with your account│    http://localhost:3000
  └───────────────┬────────────────┘      └───────────┬─────────────┘
-                 │ reads                              │ DevTools protocol
-                 ▼                                    │
+                 │ reads                             │ DevTools protocol
+                 ▼                                   │
           session volume  ◄────── session-sync ──────┘
    (cookies, XSRF token, build id)   refreshes every 10 min
                  │

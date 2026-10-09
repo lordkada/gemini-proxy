@@ -1,0 +1,13 @@
+# Local configuration and anything that may hold session data
+.env
+*.cookie
+cookie*.txt
+cookie*.json
+session.json
+
+__pycache__/
+*.pyc
+.DS_Store
+
+# Machine-specific compose tweaks (see README, Troubleshooting)
+docker-compose.override.yml

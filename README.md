@@ -1,6 +1,6 @@
 # gemini-proxy
 
-Use Gemini from coding agents such as [opencode](https://opencode.ai) **without a Gemini API key**, through the Gemini web app you can already use with your Google account (personal or Workspace).
+Use Gemini from coding agents such as [opencode](https://opencode.ai) or [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) **without a Gemini API key**, through the Gemini web app you can already use with your Google account (personal or Workspace).
 
 gemini-proxy runs on your own machine and exposes an **OpenAI-compatible** and a **Gemini-compatible** API on `http://localhost:8081`. Behind the scenes it talks to `gemini.google.com` with the session of a browser in which you signed in once.
 
@@ -10,7 +10,7 @@ gemini-proxy runs on your own machine and exposes an **OpenAI-compatible** and a
 ## How it works
 
 ```
- opencode / any OpenAI or Gemini client
+ opencode / DeepSeek Harness / any OpenAI or Gemini client
                 │  http://localhost:8081  (API key from your .env)
                 ▼
  ┌──────────── proxy ─────────────┐      ┌──────── browser ────────┐
@@ -128,6 +128,61 @@ On Windows (PowerShell): `\path\to\gemini-proxy\scripts\opencode.ps1`.
 
 The container sees **only the current folder** (mounted at `/work`), and the commands opencode runs execute inside the container, which only has `git`, `python3` and `ripgrep`. Your project's toolchain (node, java, go, ...) is not available there. Sessions are not kept between runs. Use `REBUILD=1` to rebuild the image after an update.
 
+## Using it with DeepSeek Harness
+
+[DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`) is DeepSeek's open-source agent harness. It works in the browser (Web UI) or as a one-shot command (`dsh headless "task"`). It is a *developer preview* with announced breaking changes: these instructions were tested with version `0.2.0-rc.2`.
+
+### Option A: dsh installed on your machine
+
+Install [Node.js](https://nodejs.org) (tested with 22). Then add the proxy as a provider to the dsh profile you launch: `~/.dsh/profiles/web/cordis.patch.yml` for the Web UI, `~/.dsh/profiles/headless/cordis.patch.yml` for `dsh headless` (`%USERPROFILE%\.dsh\...` on Windows). dsh creates the file on first launch with just `[]`. Replace that with the content below, or, if the file already has entries, add these two to the list:
+
+```yaml
+- id: llm-pi-ai
+  config:
+    providers:
+      gemini-proxy:
+        displayName: Gemini (web proxy)
+        apiKeyEnv: GEMINI_PROXY_API_KEY
+        api: openai-completions
+        baseURL: http://localhost:8081/v1
+        models:
+          - id: gemini-3.6-flash
+            name: Gemini 3.6 Flash (web)
+- id: agent-default-model
+  config:
+    provider: gemini-proxy
+    model: gemini-3.6-flash
+```
+
+The first entry declares the provider; the second makes it the default for new sessions. If you already have an `llm-pi-ai` entry, add `gemini-proxy` under its `providers` instead of writing a second one: an entry replaces the plugin's whole configuration.
+
+Export the key in your shell profile, as for opencode, then start dsh from the folder you want it to work on:
+
+```bash
+export GEMINI_PROXY_API_KEY=YOUR_KEY            # bash / zsh
+$env:GEMINI_PROXY_API_KEY = "YOUR_KEY"          # PowerShell
+
+npx @deepseek-ai/dsh@0.2.0-rc.2 web                               # Web UI, opens in your browser
+npx @deepseek-ai/dsh@0.2.0-rc.2 headless "explain this repo"      # one-shot
+```
+
+Instead of editing the file, you can also add the provider from the Web UI: **Settings → Models → Add model provider → Custom model API**, with Provider ID `gemini-proxy`, base URL `http://localhost:8081/v1`, protocol *OpenAI Chat Completions*, your key, and model `gemini-3.6-flash`. Then pick it in the model picker.
+
+### Option B: dsh in a container, to try it out
+
+No installation needed. From the folder you want dsh to work on:
+
+```bash
+/path/to/gemini-proxy/scripts/deepseek-harness.sh                              # Web UI
+/path/to/gemini-proxy/scripts/deepseek-harness.sh headless "explain this repo" # one-shot
+```
+
+On Windows (PowerShell): `\path\to\gemini-proxy\scripts\deepseek-harness.ps1`.
+
+The Web UI starts on `127.0.0.1:3080` and prints a sign-in link, `http://127.0.0.1:3080/?token=...`: open exactly that link (with `localhost` instead of `127.0.0.1` it asks for the token again). Use `DSH_PORT=3090` to pick another port. Stop it with Ctrl+C.
+
+The same limits as the opencode container apply: dsh sees **only the current folder** (mounted at `/work`), the commands it runs execute inside the container, which only has `git`, `python3` and `ripgrep`, and sessions are not kept between runs. Use `REBUILD=1` to rebuild the image after an update.
+
 ## Other clients
 
 Any client that can use an OpenAI-compatible endpoint works with base URL `http://localhost:8081/v1` and your key as API key.
@@ -162,7 +217,7 @@ After changing `.env`, apply it with `docker compose up -d`.
 
 ## Limitations
 
-- **Tool calling is emulated.** The web app has no function calling, so the proxy describes the tools in the prompt and parses the model's reply. It works most of the time, but sometimes the model describes the next step ("Let me read the file") instead of doing it, or asks you for the file's contents. That ends the agent's turn: just answer *"go on"* or *"use your tools"*. In our tests on small coding tasks, opencode completed the task on the first try in roughly 7–9 runs out of 10.
+- **Tool calling is emulated.** The web app has no function calling, so the proxy describes the tools in the prompt and parses the model's reply. It works most of the time, but sometimes the model describes the next step ("Let me read the file") instead of doing it, or asks you for the file's contents. That ends the agent's turn: just answer *"go on"* or *"use your tools"*. In our tests on small coding tasks, opencode completed the task on the first try in roughly 7–9 runs out of 10, and DeepSeek Harness in 5 runs out of 5.
 - **Every request is a fresh conversation.** The whole history is sent each time, so very long agent sessions mean very large prompts. Start new sessions for new tasks.
 - **Slower than the API.** Expect 3–10 seconds per step.
 - **Rate limits.** Google may throttle or challenge heavy, automated use of the web app.
@@ -189,8 +244,8 @@ After changing `.env`, apply it with `docker compose up -d`.
 | API returns `upstream error: HTTP Error 400` | The session is stale or missing. Check `docker compose logs session-sync`, sign in again if needed, or force a refresh with `docker compose restart session-sync`. |
 | API returns `401` | The key sent by the client doesn't match `PROXY_API_KEY` in `.env`. |
 | Empty answers (`content: null`) | Google rejected the request. Wait a few minutes (rate limit), or check that you can still chat at http://localhost:3000. |
-| Image build fails with `Temporary failure in name resolution` or `EAI_AGAIN` | Builds on your machine can't resolve DNS. Create `docker-compose.override.yml` (git-ignored) with the content below, and for the opencode container run `BUILD_NETWORK=host scripts/opencode.sh`. |
-| Port already in use | Change `PROXY_PORT` / `BROWSER_PORT` in `.env` (and the `baseURL` in your opencode config). |
+| Image build fails with `Temporary failure in name resolution` or `EAI_AGAIN` | Builds on your machine can't resolve DNS. Create `docker-compose.override.yml` (git-ignored) with the content below, and for the agent containers run `BUILD_NETWORK=host scripts/opencode.sh` (or `scripts/deepseek-harness.sh`). |
+| Port already in use | Change `PROXY_PORT` / `BROWSER_PORT` in `.env` (and the `baseURL` in your opencode or dsh config). For the dsh container, set `DSH_PORT`. |
 | The browser page at :3000 is blank on Apple Silicon or is slow | Give Docker / Rancher Desktop more memory (4 GB or more). |
 
 `docker-compose.override.yml` for the DNS problem:
@@ -222,4 +277,4 @@ The Gemini web protocol implementation is [gemini-web2api](https://github.com/So
 
 ## License
 
-[MIT](LICENSE). Third-party components keep their own licenses: gemini-web2api (MIT, its license is shipped in the proxy image as `LICENSE.gemini-web2api`), httpx (BSD-3-Clause), Playwright (Apache-2.0), opencode (MIT). The Chromium image is pulled from linuxserver.io under its own terms.
+[MIT](LICENSE). Third-party components keep their own licenses: gemini-web2api (MIT, its license is shipped in the proxy image as `LICENSE.gemini-web2api`), httpx (BSD-3-Clause), Playwright (Apache-2.0), opencode (MIT), DeepSeek Harness (MIT). The Chromium image is pulled from linuxserver.io under its own terms.

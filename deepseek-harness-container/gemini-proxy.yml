@@ -1,0 +1,16 @@
+# dsh patch layer: the proxy as a custom OpenAI-compatible provider, used by default.
+- id: llm-pi-ai
+  config:
+    providers:
+      gemini-proxy:
+        displayName: Gemini (web proxy)
+        apiKeyEnv: GEMINI_PROXY_API_KEY
+        api: openai-completions
+        baseURL: http://proxy:8081/v1
+        models:
+          - id: gemini-3.6-flash
+            name: Gemini 3.6 Flash (web)
+- id: agent-default-model
+  config:
+    provider: gemini-proxy
+    model: gemini-3.6-flash

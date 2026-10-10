@@ -219,3 +219,7 @@ docker compose build --pull && docker compose up -d   # update images
 ## Credits
 
 The Gemini web protocol implementation is [gemini-web2api](https://github.com/Sophomoresty/gemini-web2api) by Sophomoresty (MIT license), used unmodified. The browser is [linuxserver/chromium](https://docs.linuxserver.io/images/docker-chromium/).
+
+## License
+
+[MIT](LICENSE). Third-party components keep their own licenses: gemini-web2api (MIT, its license is shipped in the proxy image as `LICENSE.gemini-web2api`), httpx (BSD-3-Clause), Playwright (Apache-2.0), opencode (MIT). The Chromium image is pulled from linuxserver.io under its own terms.

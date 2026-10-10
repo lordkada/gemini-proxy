@@ -4,9 +4,9 @@ gemini-proxy needs the `docker` command and Docker Compose v2 (`docker compose`,
 
 | Option | Platforms | Notes |
 |---|---|---|
-| [Rancher Desktop](#rancher-desktop) | macOS, Windows, Linux | Free and open source. Use it if it's the runtime your company allows. |
+| [Rancher Desktop](#rancher-desktop) | macOS, Windows, Linux | Free and open source, with a GUI. |
 | [Docker Engine](#docker-engine-linux) | Linux | Free, no GUI. The simplest choice on Linux. |
-| [Docker Desktop](#docker-desktop) | macOS, Windows, Linux | Requires a paid subscription for larger companies; check with IT before installing it at work. |
+| [Docker Desktop](#docker-desktop) | macOS, Windows, Linux | Free for personal use; larger companies need a paid subscription. |
 
 If one of them is already installed, skip to [Check the installation](#check-the-installation).
 
@@ -70,7 +70,7 @@ If you installed Docker from your distribution's packages instead and `docker co
 
 Official docs: https://docs.docker.com/desktop/ (macOS, Windows, Linux). Docker Compose is included. On Windows, enable the WSL 2 backend when asked.
 
-Docker Desktop is free only for personal use, education, and small businesses. Larger companies need a paid subscription. If your company allows Rancher Desktop instead, use that.
+Docker Desktop is free only for personal use, education, and small businesses. Larger companies need a paid subscription. Rancher Desktop is a free alternative.
 
 ## Check the installation
 
@@ -94,6 +94,6 @@ If `docker compose up` fails while downloading images or packages, with timeouts
 - Rancher Desktop and Docker Desktop: set the proxy in the app's network/proxy settings.
 - Docker Engine: see https://docs.docker.com/engine/daemon/proxy/
 
-Ask IT for the proxy address and, if needed, the company's root certificate.
+Your network administrator can give you the proxy address and, if needed, the root certificate to trust.
 
 Now go back to the [Quick start](../README.md#quick-start).

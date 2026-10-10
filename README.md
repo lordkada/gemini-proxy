@@ -1,11 +1,11 @@
 # gemini-proxy
 
-Use Gemini from coding agents such as [opencode](https://opencode.ai) **without a Gemini API key**, through the Gemini web app you can already use with your Google Workspace account.
+Use Gemini from coding agents such as [opencode](https://opencode.ai) **without a Gemini API key**, through the Gemini web app you can already use with your Google account (personal or Workspace).
 
 gemini-proxy runs on your own machine and exposes an **OpenAI-compatible** and a **Gemini-compatible** API on `http://localhost:8081`. Behind the scenes it talks to `gemini.google.com` with the session of a browser in which you signed in once.
 
 > [!IMPORTANT]
-> This is an unofficial tool built on reverse-engineered, undocumented web endpoints. It can break whenever Google changes the Gemini web app, it is slower than the real API, and tool calling is emulated (see [Limitations](#limitations)). Check that using it complies with your company's policies before relying on it.
+> This is an unofficial tool built on reverse-engineered, undocumented web endpoints. It can break whenever Google changes the Gemini web app, it is slower than the real API, and tool calling is emulated (see [Limitations](#limitations)). Using it may not comply with Google's terms of service: use it at your own risk.
 
 ## How it works
 
@@ -61,7 +61,7 @@ docker compose up -d
 Then sign in, **once**:
 
 1. Open **http://localhost:3000** in your normal browser. You see a Chromium window already on Gemini.
-2. Sign in with your work Google account (SSO included) and wait until the Gemini chat page is loaded.
+2. Sign in with your Google account (Workspace SSO works too) and wait until the Gemini chat page is loaded.
 3. Within about 10 seconds the proxy picks up the session:
 
    ```bash
@@ -178,7 +178,7 @@ After changing `.env`, apply it with `docker compose up -d`.
 
 - All ports are bound to `127.0.0.1`. The browser UI at port 3000 has no password, so **do not** change the bindings to `0.0.0.0` or expose them on a network.
 - `.env` holds your proxy key and is git-ignored. Never commit it.
-- What you send through the proxy goes to Gemini exactly as if you had typed it in the web app, under your account and your organization's Workspace terms.
+- What you send through the proxy goes to Gemini exactly as if you had typed it in the web app, under your account and its terms.
 - The upstream proxy code is fetched at a pinned commit that was reviewed: it only contacts Google domains. Review the diff before bumping `WEB2API_COMMIT` in [`proxy/Dockerfile`](proxy/Dockerfile).
 
 ## Troubleshooting
